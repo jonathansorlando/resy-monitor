@@ -92,7 +92,6 @@
   <template id="tpl-target">
     <div class="target-card" data-id="">
       <div class="target-card__header">
-        <img class="platform-badge" src="../icons/resy-badge.png" alt="Resy" width="18" height="18" />
         <span class="target-card__title">Restaurant</span>
         <button class="btn btn--ghost btn--sm btn--remove" title="Remove">✕</button>
       </div>
@@ -154,7 +153,10 @@
   <!-- ── Status target card template ── -->
   <template id="tpl-status-target">
     <div class="status-card" data-id="">
-      <div class="status-card__name"></div>
+      <div class="status-card__header">
+        <img class="platform-badge" src="" alt="" width="18" height="18" />
+        <div class="status-card__name"></div>
+      </div>
       <div class="status-card__meta"></div>
       <div class="status-card__status"></div>
     </div>

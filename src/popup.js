@@ -114,7 +114,6 @@ function buildTargetCard(target) {
   card.dataset.id = target.id;
 
   const titleEl      = card.querySelector('.target-card__title');
-  const platformBadge = card.querySelector('.platform-badge');
   const venueSearch  = card.querySelector('.input--venue-search');
   const venueId      = card.querySelector('.input--venue-id');
   const resultsEl    = card.querySelector('.search-results');
@@ -123,11 +122,6 @@ function buildTargetCard(target) {
   const venueSrEl    = card.querySelector('.venue-sevenrooms');
   const platformBtns = card.querySelectorAll('.platform-btn');
 
-  const BADGES = {
-    resy:        '../icons/resy-badge.png',
-    sevenrooms:  '../icons/sr-badge.png',
-  };
-  const BADGE_ALT = { resy: 'Resy', sevenrooms: 'SevenRooms' };
   const dateInput    = card.querySelector('.input--date');
   const partySizeEl  = card.querySelector('.input--party-size');
   const timeStartEl  = card.querySelector('.input--time-start');
@@ -142,8 +136,6 @@ function buildTargetCard(target) {
     });
     venueResyEl.classList.toggle('hidden', platform !== 'resy');
     venueSrEl.classList.toggle('hidden', platform !== 'sevenrooms');
-    platformBadge.src = BADGES[platform];
-    platformBadge.alt = BADGE_ALT[platform];
   }
   applyPlatform(currentPlatform);
 
@@ -319,6 +311,9 @@ function showStatusView(config) {
     const frag = tplStatusTarget.content.cloneNode(true);
     const card = frag.querySelector('.status-card');
     card.dataset.id = t.id;
+    const badge = card.querySelector('.platform-badge');
+    badge.src = t.platform === 'sevenrooms' ? '../icons/sr-badge.png' : '../icons/resy-badge.png';
+    badge.alt = t.platform === 'sevenrooms' ? 'SevenRooms' : 'Resy';
     card.querySelector('.status-card__name').textContent = t.venueName || '(unnamed)';
     card.querySelector('.status-card__meta').textContent =
       `${t.date} · ${t.timeStart}–${t.timeEnd} · Party of ${t.partySize}`;

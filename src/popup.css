@@ -292,7 +292,8 @@ header {
   border-radius: 6px;
   background: #fafafa;
 }
-.status-card__name { font-weight: 600; font-size: 12px; margin-bottom: 2px; }
+.status-card__header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.status-card__name { font-weight: 600; font-size: 12px; }
 .status-card__meta { font-size: 11px; color: #777; margin-bottom: 4px; }
 .status-card__status { font-size: 11px; color: #333; }
 .status-card__status.found { color: #155724; font-weight: 600; }
