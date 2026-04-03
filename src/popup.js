@@ -4,7 +4,7 @@
 
 import { loadConfig, saveConfig, addTarget, removeTarget, updateTarget } from './storage.js';
 import { getAuthToken, getApiKey, searchVenues } from './api.js';
-import { parseVenueSlug } from './sevenrooms-api.js';
+import { parseVenueSlug, fetchVenueInfo } from './sevenrooms-api.js';
 
 // ── DOM refs ────────────────────────────────────────────────────────────────
 const authBadge       = document.getElementById('auth-badge');
@@ -167,17 +167,40 @@ function buildTargetCard(target) {
   });
 
   // ── SevenRooms URL ───────────────────────────────────────────
+  const srValidation = card.querySelector('.sr-validation');
   if (target.platform === 'sevenrooms' && target.venueId) {
     srUrlInput.value = target.venueId;
     titleEl.textContent = target.venueName || target.venueId;
   }
-  srUrlInput.addEventListener('change', async () => {
-    const slug = parseVenueSlug(srUrlInput.value.trim());
-    if (!slug) return;
-    titleEl.textContent = slug;
-    await updateTarget(target.id, { venueId: slug, venueName: slug });
+
+  async function handleSrUrlChange() {
+    const raw = srUrlInput.value.trim();
+    if (!raw) return;
+    const slug = parseVenueSlug(raw);
+    if (!slug) {
+      setSrValidation(srValidation, 'error', 'Could not extract venue slug from URL');
+      return;
+    }
+
+    setSrValidation(srValidation, 'loading', 'Validating venue…');
+    const { valid, name } = await fetchVenueInfo(slug);
+
+    if (!valid) {
+      setSrValidation(srValidation, 'error', `Venue "${slug}" not found on SevenRooms`);
+      await updateTarget(target.id, { venueId: '', venueName: '' });
+      titleEl.textContent = 'Restaurant';
+      revalidate();
+      return;
+    }
+
+    setSrValidation(srValidation, 'ok', `Found: ${name}`);
+    titleEl.textContent = name;
+    await updateTarget(target.id, { venueId: slug, venueName: name });
     revalidate();
-  });
+  }
+
+  srUrlInput.addEventListener('change', handleSrUrlChange);
+  srUrlInput.addEventListener('blur', handleSrUrlChange);
 
   // ── Shared field persistence ─────────────────────────────────
   dateInput.value    = target.date || '';
@@ -245,6 +268,12 @@ function showSearchResults(el, venues, onSelect) {
       el.appendChild(li);
     }
   }
+  el.classList.remove('hidden');
+}
+
+function setSrValidation(el, state, message) {
+  el.textContent = message;
+  el.className = `sr-validation sr-validation--${state}`;
   el.classList.remove('hidden');
 }
 

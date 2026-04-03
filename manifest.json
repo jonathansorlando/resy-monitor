@@ -6,7 +6,7 @@
   "permissions": ["alarms", "notifications", "cookies", "storage"],
   "host_permissions": [
     "https://*.resy.com/*",
-    "https://www.sevenrooms.com/*"
+    "https://*.sevenrooms.com/*"
   ],
   "background": {
     "service_worker": "src/background.js",

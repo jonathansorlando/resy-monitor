@@ -227,6 +227,15 @@ header {
 .search-results .no-results { color: #888; font-style: italic; }
 .search-results .search-error { color: #721c24; font-style: normal; }
 
+/* ── SevenRooms validation ────────────────────────────────────── */
+.sr-validation {
+  font-size: 11px;
+  margin-top: 4px;
+}
+.sr-validation--loading { color: #888; font-style: italic; }
+.sr-validation--ok      { color: #155724; font-weight: 500; }
+.sr-validation--error   { color: #721c24; }
+
 /* ── Status view ──────────────────────────────────────────────── */
 .polling-bar {
   display: flex;
