@@ -114,11 +114,14 @@ async function checkAvailability() {
         url
       );
     }
+    // Stop monitoring after notifying — user must act manually
+    await saveConfig({ active: false });
+    chrome.alarms.clear(ALARM_NAME);
     return;
   }
 
-  // autobook: try each available Resy target until one succeeds.
-  // SevenRooms targets fall back to notify since booking requires official credentials.
+  // autobook mode: attempt booking on Resy targets.
+  // SevenRooms targets always notify-and-stop (no booking API available).
   if (mode === 'autobook') {
     for (const r of available) {
       if (r.platform === 'sevenrooms') {
@@ -128,7 +131,9 @@ async function checkAvailability() {
           `Open times: ${times} — Click to book`,
           srBookingUrl(r.venueId)
         );
-        continue;
+        await saveConfig({ active: false });
+        chrome.alarms.clear(ALARM_NAME);
+        return;
       }
       const booked = await attemptBooking(r, apiKey, authToken);
       if (booked) {
