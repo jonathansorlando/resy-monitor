@@ -352,6 +352,12 @@ btnAddTarget.addEventListener('click', async () => {
   const card = buildTargetCard(target);
   targetsList.appendChild(card);
   validateStartButton((await loadConfig()).targets);
+
+  // Scroll to the new card and focus the first input field
+  const addedCard = targetsList.lastElementChild;
+  addedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const firstInput = addedCard.querySelector('.input--venue-search, .input--sr-url');
+  if (firstInput) firstInput.focus();
 });
 
 btnStart.addEventListener('click', async () => {
