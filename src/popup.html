@@ -95,13 +95,28 @@
         <span class="target-card__title">Restaurant</span>
         <button class="btn btn--ghost btn--sm btn--remove" title="Remove">✕</button>
       </div>
-      <div class="field-group">
+
+      <!-- Platform toggle -->
+      <div class="platform-toggle field-group">
+        <button class="platform-btn platform-btn--active" data-platform="resy">Resy</button>
+        <button class="platform-btn" data-platform="sevenrooms">SevenRooms</button>
+      </div>
+
+      <!-- Resy: search by name -->
+      <div class="field-group venue-resy">
         <label class="label">Restaurant</label>
         <div class="search-wrap">
           <input type="text" class="input input--venue-search" placeholder="Search restaurant…" autocomplete="off" />
           <ul class="search-results hidden"></ul>
         </div>
         <input type="hidden" class="input--venue-id" />
+      </div>
+
+      <!-- SevenRooms: paste URL or slug -->
+      <div class="field-group venue-sevenrooms hidden">
+        <label class="label">SevenRooms URL or venue slug</label>
+        <input type="text" class="input input--sr-url" placeholder="e.g. https://www.sevenrooms.com/reservations/…" autocomplete="off" />
+        <p class="hint">Paste the restaurant's SevenRooms reservation URL</p>
       </div>
       <div class="section--row">
         <div class="field-group">

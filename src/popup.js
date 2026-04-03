@@ -4,6 +4,7 @@
 
 import { loadConfig, saveConfig, addTarget, removeTarget, updateTarget } from './storage.js';
 import { getAuthToken, getApiKey, searchVenues } from './api.js';
+import { parseVenueSlug } from './sevenrooms-api.js';
 
 // ── DOM refs ────────────────────────────────────────────────────────────────
 const authBadge       = document.getElementById('auth-badge');
@@ -116,27 +117,44 @@ function buildTargetCard(target) {
   const venueSearch  = card.querySelector('.input--venue-search');
   const venueId      = card.querySelector('.input--venue-id');
   const resultsEl    = card.querySelector('.search-results');
+  const srUrlInput   = card.querySelector('.input--sr-url');
+  const venueResyEl  = card.querySelector('.venue-resy');
+  const venueSrEl    = card.querySelector('.venue-sevenrooms');
+  const platformBtns = card.querySelectorAll('.platform-btn');
   const dateInput    = card.querySelector('.input--date');
   const partySizeEl  = card.querySelector('.input--party-size');
   const timeStartEl  = card.querySelector('.input--time-start');
   const timeEndEl    = card.querySelector('.input--time-end');
   const removeBtn    = card.querySelector('.btn--remove');
 
-  // Populate fields
+  // ── Platform toggle ──────────────────────────────────────────
+  const currentPlatform = target.platform || 'resy';
+  function applyPlatform(platform) {
+    platformBtns.forEach((b) => {
+      b.classList.toggle('platform-btn--active', b.dataset.platform === platform);
+    });
+    venueResyEl.classList.toggle('hidden', platform !== 'resy');
+    venueSrEl.classList.toggle('hidden', platform !== 'sevenrooms');
+  }
+  applyPlatform(currentPlatform);
+
+  platformBtns.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const p = btn.dataset.platform;
+      applyPlatform(p);
+      await updateTarget(target.id, { platform: p, venueId: '', venueName: '' });
+      titleEl.textContent = 'Restaurant';
+      revalidate();
+    });
+  });
+
+  // ── Resy venue search ────────────────────────────────────────
   if (target.venueName) {
     venueSearch.value = target.venueName;
     titleEl.textContent = target.venueName;
   }
-  venueId.value      = target.venueId || '';
-  dateInput.value    = target.date || '';
-  partySizeEl.value  = String(target.partySize || 2);
-  buildTimeOptions(timeStartEl, target.timeStart || '18:00');
-  buildTimeOptions(timeEndEl, target.timeEnd || '22:00');
+  venueId.value = target.venueId || '';
 
-  // Set minimum date to today
-  dateInput.min = new Date().toISOString().split('T')[0];
-
-  // Venue search with debounce
   let searchTimer;
   venueSearch.addEventListener('input', () => {
     clearTimeout(searchTimer);
@@ -144,12 +162,30 @@ function buildTargetCard(target) {
     if (q.length < 2) { resultsEl.classList.add('hidden'); return; }
     searchTimer = setTimeout(() => doVenueSearch(q, resultsEl, venueSearch, venueId, titleEl, target.id), 350);
   });
-
   venueSearch.addEventListener('blur', () => {
     setTimeout(() => resultsEl.classList.add('hidden'), 200);
   });
 
-  // Field change persistence
+  // ── SevenRooms URL ───────────────────────────────────────────
+  if (target.platform === 'sevenrooms' && target.venueId) {
+    srUrlInput.value = target.venueId;
+    titleEl.textContent = target.venueName || target.venueId;
+  }
+  srUrlInput.addEventListener('change', async () => {
+    const slug = parseVenueSlug(srUrlInput.value.trim());
+    if (!slug) return;
+    titleEl.textContent = slug;
+    await updateTarget(target.id, { venueId: slug, venueName: slug });
+    revalidate();
+  });
+
+  // ── Shared field persistence ─────────────────────────────────
+  dateInput.value    = target.date || '';
+  partySizeEl.value  = String(target.partySize || 2);
+  buildTimeOptions(timeStartEl, target.timeStart || '18:00');
+  buildTimeOptions(timeEndEl, target.timeEnd || '22:00');
+  dateInput.min = new Date().toISOString().split('T')[0];
+
   dateInput.addEventListener('change', () => updateTarget(target.id, { date: dateInput.value }).then(revalidate));
   partySizeEl.addEventListener('change', () => updateTarget(target.id, { partySize: Number(partySizeEl.value) }));
   timeStartEl.addEventListener('change', () => updateTarget(target.id, { timeStart: timeStartEl.value }));

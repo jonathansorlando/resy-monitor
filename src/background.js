@@ -10,6 +10,10 @@ import {
   getDetails,
   bookReservation,
 } from './api.js';
+import {
+  findAvailability as srFindAvailability,
+  bookingUrl as srBookingUrl,
+} from './sevenrooms-api.js';
 
 const ALARM_NAME = 'resy-poll';
 
@@ -101,21 +105,33 @@ async function checkAvailability() {
   if (mode === 'notify') {
     for (const r of available) {
       const times = r.slots.map((s) => s.time).join(', ');
+      const url = r.platform === 'sevenrooms'
+        ? srBookingUrl(r.venueId)
+        : `https://resy.com/cities/ny/${r.urlSlug || ''}`;
       notify(
         `${r.venueName} is available!`,
-        `Open times: ${times} — Click to open Resy`,
-        `https://resy.com/cities/ny/${r.urlSlug || ''}`
+        `Open times: ${times} — Click to book`,
+        url
       );
     }
     return;
   }
 
-  // autobook: try each available target until one succeeds
+  // autobook: try each available Resy target until one succeeds.
+  // SevenRooms targets fall back to notify since booking requires official credentials.
   if (mode === 'autobook') {
     for (const r of available) {
+      if (r.platform === 'sevenrooms') {
+        const times = r.slots.map((s) => s.time).join(', ');
+        notify(
+          `${r.venueName} is available! (SevenRooms)`,
+          `Open times: ${times} — Click to book`,
+          srBookingUrl(r.venueId)
+        );
+        continue;
+      }
       const booked = await attemptBooking(r, apiKey, authToken);
       if (booked) {
-        // Stop all monitoring once a booking succeeds
         await saveConfig({ active: false });
         chrome.alarms.clear(ALARM_NAME);
         return;
@@ -128,7 +144,12 @@ async function checkAvailability() {
 async function pollTarget(target, apiKey, authToken) {
   const now = new Date().toISOString();
   try {
-    const allSlots = await findAvailability(target.venueId, target.partySize, target.date, apiKey, authToken);
+    let allSlots;
+    if (target.platform === 'sevenrooms') {
+      allSlots = await srFindAvailability(target.venueId, target.partySize, target.date, target.timeStart);
+    } else {
+      allSlots = await findAvailability(target.venueId, target.partySize, target.date, apiKey, authToken);
+    }
     const slots = allSlots.filter((s) => timeInRange(s.time, target.timeStart, target.timeEnd));
     return {
       ...target,

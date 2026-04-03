@@ -5,7 +5,8 @@
   "description": "Monitor Resy for restaurant availability and auto-book when a slot opens",
   "permissions": ["alarms", "notifications", "cookies", "storage"],
   "host_permissions": [
-    "https://*.resy.com/*"
+    "https://*.resy.com/*",
+    "https://www.sevenrooms.com/*"
   ],
   "background": {
     "service_worker": "src/background.js",

@@ -36,7 +36,8 @@ export async function addTarget() {
   const { targets } = await loadConfig();
   const target = {
     id: crypto.randomUUID(),
-    venueId: '',
+    platform: 'resy',        // "resy" | "sevenrooms"
+    venueId: '',             // Resy venue ID or SevenRooms slug
     venueName: '',
     date: '',
     timeStart: '18:00',
