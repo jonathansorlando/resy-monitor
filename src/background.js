@@ -6,6 +6,7 @@ import { loadConfig, saveConfig, updateTarget } from './storage.js';
 import {
   getAuthToken,
   getApiKey,
+  getUser,
   findAvailability,
   getDetails,
   bookReservation,
@@ -83,6 +84,17 @@ async function checkAvailability() {
     await saveConfig({ active: false });
     chrome.alarms.clear(ALARM_NAME);
     notify('Resy Monitor — Not logged in', 'Browse resy.com while logged in, then restart.', null);
+    return;
+  }
+
+  // Validate credentials by hitting /2/user before polling
+  try {
+    await getUser(apiKey, authToken);
+  } catch (e) {
+    console.error('[ResyMonitor] credential check failed:', e.message);
+    await saveConfig({ active: false });
+    chrome.alarms.clear(ALARM_NAME);
+    notify('Resy Monitor — Credentials invalid', 'Re-open resy.com to refresh, then restart.', null);
     return;
   }
 

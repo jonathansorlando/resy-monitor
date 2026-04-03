@@ -21,23 +21,27 @@ export async function getApiKey() {
 }
 
 // Build headers common to all requests.
-function headers(apiKey, authToken) {
-  return {
+function headers(apiKey, authToken, includeContentType = false) {
+  const h = {
     'Authorization': `ResyAPI api_key="${apiKey}"`,
     'X-Resy-Auth-Token': authToken,
     'X-Resy-Universal-Auth': authToken,
     'Origin': 'https://resy.com',
     'Referer': 'https://resy.com/',
-    'Content-Type': 'application/json',
+    'X-Origin': 'https://resy.com',
     'Accept': 'application/json, text/plain, */*',
     'Cache-Control': 'no-cache',
   };
+  if (includeContentType) h['Content-Type'] = 'application/json';
+  return h;
 }
 
 async function apiFetch(path, options, apiKey, authToken) {
+  const isPost = options.method === 'POST';
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers: headers(apiKey, authToken),
+    headers: headers(apiKey, authToken, isPost),
+    credentials: 'include',
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
@@ -76,7 +80,7 @@ export async function searchVenues(query, apiKey, authToken) {
     [];
   return hits.map((h) => ({
     // Algolia-style responses use objectID; others use id or nested venue id
-    venueId: String(h.objectID || h.id?.resy || h.id || h.venue?.id?.resy || h.venue?.id || ''),
+    venueId: String(h.id?.resy || h.venue?.id?.resy || h.id || h.venue?.id || h.objectID || ''),
     name: h.name || h.venue?.name || '',
     locality: h.locality || h.location?.locality || '',
     region: h.region || h.location?.region || '',
@@ -84,17 +88,26 @@ export async function searchVenues(query, apiKey, authToken) {
   })).filter((v) => v.venueId && v.name);
 }
 
-// GET /4/find — find available slots for a venue/date/party.
+// POST /4/find — find available slots for a venue/date/party.
+// venue_id and party_size must be numbers (not strings).
+// lat/long must be 0 for venue-specific lookups.
 // Returns array of { time, configId, tableType, partySize }.
 export async function findAvailability(venueId, partySize, date, apiKey, authToken) {
-  const params = new URLSearchParams({
-    venue_id: venueId,
-    party_size: String(partySize),
-    day: date,
-    lat: '0',
-    long: '0',
-  });
-  const data = await apiFetch(`/4/find?${params}`, { method: 'GET' }, apiKey, authToken);
+  const data = await apiFetch(
+    '/4/find',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        lat: 0,
+        long: 0,
+        day: date,
+        party_size: Number(partySize),
+        venue_id: Number(venueId),
+      }),
+    },
+    apiKey,
+    authToken
+  );
 
   const venues = data.results?.venues || [];
   const slots = [];

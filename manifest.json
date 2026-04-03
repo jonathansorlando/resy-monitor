@@ -3,7 +3,7 @@
   "name": "Resy Monitor",
   "version": "1.0.0",
   "description": "Monitor Resy for restaurant availability and auto-book when a slot opens",
-  "permissions": ["alarms", "notifications", "cookies", "storage"],
+  "permissions": ["alarms", "notifications", "cookies", "storage", "scripting", "tabs"],
   "host_permissions": [
     "https://*.resy.com/*",
     "https://*.sevenrooms.com/*"
