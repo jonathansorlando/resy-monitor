@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Resy Monitor",
+  "version": "1.0.0",
+  "description": "Monitor Resy for restaurant availability and auto-book when a slot opens",
+  "permissions": ["alarms", "notifications", "cookies", "storage"],
+  "host_permissions": [
+    "https://*.resy.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "Resy Monitor",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://resy.com/*", "https://www.resy.com/*"],
+      "js": ["src/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/interceptor.js"],
+      "matches": ["https://resy.com/*", "https://www.resy.com/*"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

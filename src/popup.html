@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resy Monitor</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <img src="../icons/icon-16.png" alt="" class="logo" />
+    <span class="app-title">Resy Monitor</span>
+    <span id="auth-badge" class="badge badge--checking">Checking…</span>
+  </header>
+
+  <!-- ── Setup view (shown when not monitoring) ── -->
+  <div id="view-setup">
+
+    <section class="section">
+      <div class="creds-header">
+        <span class="label" style="margin-bottom:0">Credentials</span>
+        <a href="#" id="creds-help" class="help-link help-link--text">How to get these ›</a>
+      </div>
+      <div id="creds-hint" class="hint-box hidden">
+        <ol>
+          <li>Go to <strong>resy.com</strong> while logged in</li>
+          <li>Open DevTools → <strong>Network</strong> tab</li>
+          <li>Search for a restaurant on resy.com to trigger an API call</li>
+          <li>Click any request to <strong>api.resy.com</strong></li>
+          <li>Open the <strong>Request Headers</strong> section</li>
+          <li>Copy <code>Authorization</code> value after <code>api_key=</code> → paste below</li>
+          <li>Copy <code>X-Resy-Auth-Token</code> value → paste below</li>
+        </ol>
+      </div>
+      <div class="creds-row">
+        <div class="field-group">
+          <label class="label" for="api-key">API Key</label>
+          <input id="api-key" type="password" class="input" placeholder="From Authorization header" autocomplete="off" />
+        </div>
+        <div class="field-group">
+          <label class="label" for="auth-token">Auth Token</label>
+          <input id="auth-token" type="password" class="input" placeholder="From X-Resy-Auth-Token" autocomplete="off" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--row">
+      <div class="field-group">
+        <label class="label" for="mode">Mode</label>
+        <select id="mode" class="input input--sm">
+          <option value="notify">Notify me</option>
+          <option value="autobook">Auto-book</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="label" for="interval">Check every</label>
+        <select id="interval" class="input input--sm">
+          <option value="0.5">30 seconds</option>
+          <option value="1" selected>1 minute</option>
+          <option value="2">2 minutes</option>
+          <option value="5">5 minutes</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="targets-header">
+        <span class="label">Restaurants</span>
+        <button id="btn-add-target" class="btn btn--ghost btn--sm">+ Add Restaurant</button>
+      </div>
+      <div id="targets-list"></div>
+      <p id="no-targets-msg" class="hint">Add at least one restaurant to monitor.</p>
+    </section>
+
+    <button id="btn-start" class="btn btn--primary btn--full" disabled>
+      Start Monitoring
+    </button>
+  </div>
+
+  <!-- ── Status view (shown when monitoring) ── -->
+  <div id="view-status" class="hidden">
+    <div class="polling-bar">
+      <span class="pulse-ring"></span>
+      <span class="pulse-dot"></span>
+      <span id="status-summary" class="status-summary"></span>
+    </div>
+    <div id="status-targets"></div>
+    <button id="btn-stop" class="btn btn--danger btn--full">Stop Monitoring</button>
+  </div>
+
+  <!-- ── Target card template ── -->
+  <template id="tpl-target">
+    <div class="target-card" data-id="">
+      <div class="target-card__header">
+        <span class="target-card__title">Restaurant</span>
+        <button class="btn btn--ghost btn--sm btn--remove" title="Remove">✕</button>
+      </div>
+      <div class="field-group">
+        <label class="label">Restaurant</label>
+        <div class="search-wrap">
+          <input type="text" class="input input--venue-search" placeholder="Search restaurant…" autocomplete="off" />
+          <ul class="search-results hidden"></ul>
+        </div>
+        <input type="hidden" class="input--venue-id" />
+      </div>
+      <div class="section--row">
+        <div class="field-group">
+          <label class="label">Date</label>
+          <input type="date" class="input input--date" />
+        </div>
+        <div class="field-group">
+          <label class="label">Party size</label>
+          <select class="input input--party-size input--sm">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+      </div>
+      <div class="section--row">
+        <div class="field-group">
+          <label class="label">Earliest time</label>
+          <select class="input input--time-start input--sm"></select>
+        </div>
+        <div class="field-group">
+          <label class="label">Latest time</label>
+          <select class="input input--time-end input--sm"></select>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ── Status target card template ── -->
+  <template id="tpl-status-target">
+    <div class="status-card" data-id="">
+      <div class="status-card__name"></div>
+      <div class="status-card__meta"></div>
+      <div class="status-card__status"></div>
+    </div>
+  </template>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
